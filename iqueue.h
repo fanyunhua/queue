@@ -37,10 +37,10 @@ struct IQueue
 
     bool enqueue(T &value)
     {
-        _tailLock->lock();
         _NODE *  node = new(std::nothrow) _NODE();
-        node->_value = value;
         node->_next = NULL;
+        node->_value = value;
+		_tailLock->lock();
         _tail->_next = node;
         _tail = node;
         _tailLock->unlock();
