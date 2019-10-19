@@ -3,10 +3,6 @@
 #include <QDateTime>
 #include <QDebug>
 #include <mutex>
-
-
-#include <list>
-#include <QList>
 using namespace std;
 
 IQueue<int> queue;
@@ -61,12 +57,7 @@ void m()
 
 int main(int argc, char *argv[])
 {
-        m();
+	m();
     qDebug()<<"ss";
-
-    list<int> ll;
-    ll.size();
-    QList<QString> lll;
-    lll.size();
     return 0;
 }
