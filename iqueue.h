@@ -1,20 +1,27 @@
+/***
+ * @author          :范玉华
+ * @brief           :摘要
+ * @version         :1.0
+ * @date            :2019-11-18
+ */
 #ifndef IQUEUE
 #define IQUEUE
 
 #include <mutex>
-
 namespace __base {
 template<typename T>
 struct _Base_NODE
 {
     T _value;
     _Base_NODE<T> *_next;
+    int _size;
 };
 }
 
 template<typename T>
 struct IQueue
 {
+
     typedef __base::_Base_NODE<T> _NODE;
     _NODE *_header;
     _NODE *_tail;
@@ -33,14 +40,17 @@ struct IQueue
         node = new _NODE;
         node->_next = NULL;
         _header  =    _tail = node;
+        _size = 0;
     }
 
     bool enqueue(T &value)
     {
+        _tailLock->lock();
         _NODE *  node = new(std::nothrow) _NODE();
         node->_next = NULL;
         node->_value = value;
-		_tailLock->lock();
+        node->_size = _size++;
+        std::cout<<_size<<std::endl;
         _tail->_next = node;
         _tail = node;
         _tailLock->unlock();
@@ -49,10 +59,12 @@ struct IQueue
 
     bool enqueue(T &&value)
     {
+        _tailLock->lock();
         _NODE *  node = new _NODE;
         node->_next = NULL;
         node->_value = value;
-        _tailLock->lock();
+        node->_size = _size+=1;
+
         _tail->_next = node;
         _tail = node;
         _tailLock->unlock();
@@ -61,13 +73,18 @@ struct IQueue
 
     bool dequeue(T *pValue)
     {
+        _headLock->lock();
         if(this->isEmpty())
+        {
+            _headLock->unlock();
             return false;
+        }
         _NODE *  node;
         _NODE *  newHeader;
-        _headLock->lock();
         node = _header;
         newHeader = node->_next;
+        _headNumber = newHeader->_size;
+
         *pValue =  newHeader->_value;
         _header =  newHeader;
         delete node;
@@ -76,27 +93,26 @@ struct IQueue
     }
     bool isEmpty()
     {
-        return (_header->_next)==nullptr?true:false;
+        bool result =  (_header->_next)==nullptr?true:false;
+        if(result)
+            _size = 0;
+        return result;
     }
     void clear()
     {
         inital();
     }
+
     int size()
     {
-        //效率明显降低
-        int s = 0;
-        if(!isEmpty())
-        {
-            _NODE *  node = _header;
-            while (node->_next!=NULL) {
-                s++;
-                node = node->_next;
-            }
-        }
-        return s;
+        int si = _size -_headNumber;
+        si = si>=0?si:0;
+        return si;
     }
+
+private:
+    int _size;
+    int _headNumber;
 };
 
 #endif // IQUEUE
-
